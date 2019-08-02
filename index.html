@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Decapital Submission Review</title>
+    <meta charset="utf-8">
+    <style>
+      html, body {
+        font-family: 'Helvetica', 'Aria', sans-serif;
+      }
+      #container {
+        width: 60%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      #errors {
+        color: red;
+        font-weight: bold;
+      }
+      #current-submission dt {
+        font-size: 1.5em;
+        font-weight: 100;
+        margin-bottom: 0.5em;
+        text-transform: capitalize;
+      }
+      #current-submission dd {
+        margin-left: 1em;
+        margin-bottom: 0.5em;
+        color: DimGray;
+        line-height: 1.5em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <h1>Decapital Submission Review</h1>
+
+      <button id="sign-in" style="display: none;">Sign In</button>
+      <div id="signed-in-toolbar" style="display: none;">
+        <button id="sign-out">Sign Out</button>
+        <button id="previous">Previous Submission</button>
+        <button id="next">Next Submission</button>
+      </div>
+
+      <p id="errors"></p>
+      <p id="current-submission"></p>
+    </div>
+
+    <script type="text/javascript">
+      const api_key = 'AIzaSyBppaFFDofOuBsLEJX16VOfMdOk15FOXBk'
+      const client_id = '436431509500-r8sv9sofchltpd5c0ssgrjej5qae56s5.apps.googleusercontent.com'
+
+      // Array of API discovery doc URLs for APIs used by the quickstart
+      const discovery_docs = ['https://sheets.googleapis.com/$discovery/rest?version=v4']
+
+      // Authorization scopes required by the API; multiple scopes can be
+      // included, separated by spaces.
+      const scopes = 'https://www.googleapis.com/auth/spreadsheets.readonly'
+
+      const signInButton = document.getElementById('sign-in')
+      const signedInToolbar = document.getElementById('signed-in-toolbar')
+      const signOutButton = document.getElementById('sign-out')
+      const previousButton = document.getElementById('previous')
+      const nextButton = document.getElementById('next')
+
+      let headers
+      let submissions
+      let currentSubmission = 0
+
+      /**
+       *  On load, called to load the auth2 library and API client library.
+       */
+      function handleClientLoad() {
+        gapi.load('client:auth2', initClient)
+      }
+
+      /**
+       *  Initializes the API client library and sets up sign-in state
+       *  listeners.
+       */
+      function initClient() {
+        gapi.client.init({
+          apiKey: api_key,
+          clientId: client_id,
+          discoveryDocs: discovery_docs,
+          scope: scopes
+        }).then(() => {
+          // Listen for sign-in state changes.
+          gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus)
+
+          // Handle the initial sign-in state.
+          updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get())
+          signInButton.onclick = handleSignInClick
+          signOutButton.onclick = handleSignOutClick
+          previousButton.onclick = handlePreviousClick
+          nextButton.onclick = handleNextClick          
+
+          window.addEventListener('keyup', handleHotkey)
+        }, error => {
+          setError(JSON.stringify(error, null, 2))
+        })
+      }
+
+      /**
+       *  Called when the signed in status changes, to update the UI
+       *  appropriately. After a sign-in, the API is called.
+       */
+      function updateSigninStatus(isSignedIn) {
+        if (isSignedIn) {
+          signInButton.style.display = 'none'
+          signedInToolbar.style.display = 'block'
+          fetchSubmissions()
+        } else {
+          signedInToolbar.style.display = 'none'
+          signInButton.style.display = 'block'
+        }
+      }
+
+      /**
+       *  Sign in the user upon button click.
+       */
+      function handleSignInClick(event) {
+        gapi.auth2.getAuthInstance().signIn()
+      }
+
+      /**
+       *  Sign out the user upon button click.
+       */
+      function handleSignOutClick(event) {
+        gapi.auth2.getAuthInstance().signOut()
+        submissions = []
+      }
+
+      function handleHotkey(event) {
+        console.log('handleHotkey', event)
+        if (event.keyCode === 39) {
+          handleNextClick()
+        } else if (event.keyCode === 37) {
+          handlePreviousClick()
+        }
+      }
+
+      function handleNextClick(event) {
+        console.log('handleNextclick', currentSubmission)
+        currentSubmission = currentSubmission + 1
+        displaySubmission()
+      }
+
+      function handlePreviousClick(event) {
+        if (currentSubmission == 0) {
+          setError('Sorry, you are already at the beginning of the submission list.')
+          return
+        }
+
+        console.log('handlePreviousClick', currentSubmission)
+        currentSubmission = currentSubmission - 1
+        displaySubmission()
+      }
+
+      function setError(content) {
+        const errors = document.getElementById('errors')
+        const message = document.createTextNode(content)
+        errors.appendChild(message)
+        console.error(content)
+      }
+
+      function fetchSubmissions() {
+        gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: '10BUTrQQSAvBMXvIJ4MKlhWkuHk_XCn8Z_8yxmzxD9xQ',
+          range: 'Submissions 2019',
+        }).then(response => {
+          const values = response.result.values
+          headers = values[0]
+          submissions = values.slice(1, -1)
+
+          if (submissions.length == 0) {
+            setError('No data found.')
+          } else {
+            displaySubmission()
+          }
+        }, response => {
+          setError('Error: ' + response.result.error.message)
+        })
+      }
+
+      function displaySubmission() {
+        const submission = submissions[currentSubmission]
+        const displayArea = document.getElementById('current-submission')
+        console.log('submission', submission[2])
+
+        const list = document.createElement('dl')
+
+        headers.map((header, index) => {
+          const term = document.createElement('dt')
+          term.innerText = header
+
+          const details = document.createElement('dd')
+          details.innerText = submission[index]
+
+          list.appendChild(term)
+          list.appendChild(details)
+        })
+
+        displayArea.innerHTML = ''
+        displayArea.appendChild(list)
+      }
+    </script>
+
+    <script
+      async
+      defer
+      src="https://apis.google.com/js/api.js"
+      onload="this.onload=function(){};handleClientLoad()"
+      onreadystatechange="if (this.readyState === 'complete') this.onload()"
+    >
+    </script>
+  </body>
+</html>
