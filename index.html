@@ -136,7 +136,6 @@
       }
 
       function handleHotkey(event) {
-        console.log('handleHotkey', event)
         if (event.keyCode === 39) {
           handleNextClick()
         } else if (event.keyCode === 37) {
@@ -145,7 +144,6 @@
       }
 
       function handleNextClick(event) {
-        console.log('handleNextclick', currentSubmission)
         currentSubmission = currentSubmission + 1
         displaySubmission()
       }
@@ -156,7 +154,6 @@
           return
         }
 
-        console.log('handlePreviousClick', currentSubmission)
         currentSubmission = currentSubmission - 1
         displaySubmission()
       }
@@ -190,7 +187,6 @@
       function displaySubmission() {
         const submission = submissions[currentSubmission]
         const displayArea = document.getElementById('current-submission')
-        console.log('submission', submission[2])
 
         const list = document.createElement('dl')
 
