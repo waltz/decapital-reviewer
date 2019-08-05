@@ -100,6 +100,18 @@
           nextButton.onclick = handleNextClick          
 
           window.addEventListener('keyup', handleHotkey)
+
+          const initialHash = window.location.hash
+          if (initialHash !== '') {
+            const cleanHash = parseInt(initialHash.slice(1))
+            
+            if (isNaN(cleanHash)) {
+              console.warn('Found an initial hash, but it was not a number.')
+              return
+            }
+
+            currentSubmission = cleanHash
+          }
         }, error => {
           setError(JSON.stringify(error, null, 2))
         })
@@ -186,8 +198,14 @@
 
       function displaySubmission() {
         const submission = submissions[currentSubmission]
-        const displayArea = document.getElementById('current-submission')
 
+        if (submission === undefined) {
+          console.warn('Submission could not be found. Requested ID was:', currentSubmission)
+          return
+        }
+
+        window.location.hash = currentSubmission
+        const displayArea = document.getElementById('current-submission')
         const list = document.createElement('dl')
 
         headers.map((header, index) => {
