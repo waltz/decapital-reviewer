@@ -100,19 +100,8 @@
           nextButton.onclick = handleNextClick          
 
           window.addEventListener('keyup', handleHotkey)
-
-          const initialHash = window.location.hash
-          if (initialHash !== '') {
-            const cleanHash = parseInt(initialHash.slice(1))
-            
-            if (isNaN(cleanHash)) {
-              console.warn('Found an initial hash, but it was not a number.')
-              return
-            }
-
-            currentSubmission = cleanHash
-          }
-        }, error => {
+          parseCurrentHash()
+       }, error => {
           setError(JSON.stringify(error, null, 2))
         })
       }
@@ -170,6 +159,20 @@
         displaySubmission()
       }
 
+      function parseCurrentHash() {
+        const initialHash = window.location.hash
+        if (initialHash !== '') {
+          const cleanHash = parseInt(initialHash.slice(1))
+          
+          if (isNaN(cleanHash)) {
+            console.warn('Found a hash, but it was not a number.')
+            return
+          }
+          
+          currentSubmission = cleanHash
+        }
+      }
+ 
       function setError(content) {
         const errors = document.getElementById('errors')
         const message = document.createTextNode(content)
@@ -221,6 +224,11 @@
 
         displayArea.innerHTML = ''
         displayArea.appendChild(list)
+      }
+
+      window.onhashchange = () => {
+        parseCurrentHash()
+        displaySubmission()
       }
     </script>
 
