@@ -54,6 +54,10 @@
       const api_key = 'AIzaSyB8o_z-CQ4jqmBdwMMdqHK3JUot6EyHLO0'
       const client_id = '844134980970-c5cjtu0ht59gelrc5g3lhsgdl03gr446.apps.googleusercontent.com'
 
+      // These need to be changed every year when the response sheet changes.
+      const spreadsheet_id = '13jbrclHn_6Qy1KtcVyRme3XR_6WnWHmqifUvW5x5WI0';
+      const subsheet_name = 'Form Responses 1';
+
       // Array of API discovery doc URLs for APIs used by the quickstart
       const discovery_docs = ['https://sheets.googleapis.com/$discovery/rest?version=v4']
 
@@ -182,8 +186,8 @@
 
       function fetchSubmissions() {
         gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId: '10BUTrQQSAvBMXvIJ4MKlhWkuHk_XCn8Z_8yxmzxD9xQ',
-          range: 'Submissions 2019',
+          spreadsheetId: spreadsheet_id,
+          range: subsheet_name,
         }).then(response => {
           const values = response.result.values
           headers = values[0]
